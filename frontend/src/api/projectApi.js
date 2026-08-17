@@ -1,7 +1,10 @@
 import api from "./axios";
 
-export const getProjects = async () => {
-    const response = await api.get("/projects");
+export const getProjects = async (params = {}) => {
+    const response = await api.get("/projects", {
+        params,
+    });
+
     return response.data;
 };
 
@@ -12,8 +15,13 @@ export const getProject = async (id) => {
 
     return response.data;
 };
+
 export const createProject = async (data) => {
-    const response = await api.post("/projects", data);
+    const response = await api.post(
+        "/projects",
+        data
+    );
+
     return response.data;
 };
 
@@ -34,18 +42,40 @@ export const deleteProject = async (id) => {
     return response.data;
 };
 
-export const assignMember = async (id, userId) => {
-    const response = await api.post(
-        `/projects/${id}/members`,
-        {
-            user_id: userId,
-        }
+export const getProjectMembers = async (id) => {
+    const response = await api.get(
+        `/projects/${id}/members`
     );
 
     return response.data;
 };
 
-export const removeMember = async (
+export const addProjectMember = async (
+    id,
+    data
+) => {
+    const response = await api.post(
+        `/projects/${id}/members`,
+        data
+    );
+
+    return response.data;
+};
+
+export const updateProjectMember = async (
+    projectId,
+    userId,
+    data
+) => {
+    const response = await api.put(
+        `/projects/${projectId}/members/${userId}`,
+        data
+    );
+
+    return response.data;
+};
+
+export const removeProjectMember = async (
     projectId,
     userId
 ) => {

@@ -9,17 +9,17 @@ import Dashboard from "../pages/Dashboard";
 
 import AdminLayout from "../components/AdminLayout";
 import ProtectedRoute from "../components/ProtectedRoute";
-
+import ProjectMembers from "../pages/ProjectMembers";
 import Users from "../pages/Users";
 import UserCreate from "../pages/UserCreate";
 import UserEdit from "../pages/UserEdit";
 import Projects from "../pages/Projects";
+import ProjectDetails from "../pages/ProjectDetails";
 import ProjectCreate from "../pages/ProjectCreate";
 import ProjectEdit from "../pages/ProjectEdit";
-
-function Tasks() {
-    return <h2>Tasks</h2>;
-}
+import Tasks from "../pages/Tasks";
+import TaskCreate from "../pages/TaskCreate";
+import TaskEdit from "../pages/TaskEdit"
 
 
 function AppRoutes() {
@@ -82,20 +82,26 @@ function AppRoutes() {
                         PROJECTS
                     ====================== */}
 
-                  <Route
-                    path="/projects"
-                    element={<Projects />}
-                />
+                    <Route
+                        path="/projects"
+                        element={<Projects />}
+                    />
 
 
-<Route
-    path="/projects/create"
-    element={<ProjectCreate />}
-/>
-<Route
-    path="/projects/:id/edit"
-    element={<ProjectEdit />}
-/>
+                    <Route
+                        path="/projects/create"
+                        element={<ProjectCreate />}
+                    />
+                    <Route
+                        path="/projects/:id/edit"
+                        element={<ProjectEdit />}
+                    />
+
+                    <Route
+                        path="/projects/:id"
+                        element={<ProjectDetails />}
+                    />
+
                     {/* =====================
                         TASKS
                     ====================== */}
@@ -103,6 +109,19 @@ function AppRoutes() {
                     <Route
                         path="/tasks"
                         element={<Tasks />}
+                    />
+                    <Route
+                        path="/tasks/create"
+                        element={<TaskCreate />}
+                    />
+
+                    <Route
+                        path="/tasks/:id/edit"
+                        element={<TaskEdit />}
+                    />
+                    <Route
+                        path="/projects/:id/members"
+                        element={<ProjectMembers />}
                     />
 
 

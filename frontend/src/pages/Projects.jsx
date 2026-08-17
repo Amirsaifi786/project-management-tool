@@ -377,6 +377,7 @@ function Projects() {
                                                     >
                                                         <i className="bi bi-trash"></i>
                                                     </button>
+                                                    
 
                                                 </td>
 

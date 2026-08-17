@@ -8,6 +8,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use App\Models\Project;
+use App\Models\Task;
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, HasRoles, Notifiable;
@@ -35,6 +36,13 @@ class User extends Authenticatable
     return $this->belongsToMany(Project::class)
         ->withPivot('role')
         ->withTimestamps();
+}
+public function assignedTasks()
+{
+    return $this->hasMany(
+        Task::class,
+        'assigned_to'
+    );
 }
 
 }
