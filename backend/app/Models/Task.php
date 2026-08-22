@@ -18,11 +18,13 @@ class Task extends Model
         'priority',
         'start_date',
         'due_date',
+                'attachments',
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'due_date' => 'date',
+        'attachments' => 'array',
     ];
 
     public function project()
@@ -32,13 +34,10 @@ class Task extends Model
 
     public function assignee()
     {
-        return $this->belongsTo(
-            User::class,
-            'assigned_to'
-        );
+        return $this->belongsTo(User::class, 'assigned_to');
     }
-    public function assignedUser()
-        {
-            return $this->belongsTo(User::class, 'assigned_to');
-        }
+     public function assignedUser()
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
+    }
 }

@@ -2,11 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { getTasks, deleteTask } from "../api/taskApi";
 
-import {
-    getTasks,
-    deleteTask,
-} from "../api/taskApi";
 
 function Tasks() {
 const navigate = useNavigate();
@@ -411,6 +408,12 @@ const navigate = useNavigate();
                                                             }
                                                         >
                                                             <i className="bi bi-trash"></i>
+                                                        </button>
+                                                      <button
+                                                            className="btn btn-sm btn-primary"
+                                                            onClick={() => navigate(`/tasks/${task.id}`)}
+                                                        >
+                                                            View
                                                         </button>
 
                                                     </div>

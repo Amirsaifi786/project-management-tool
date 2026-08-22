@@ -20,6 +20,7 @@ import ProjectEdit from "../pages/ProjectEdit";
 import Tasks from "../pages/Tasks";
 import TaskCreate from "../pages/TaskCreate";
 import TaskEdit from "../pages/TaskEdit"
+import TaskDetail from "../pages/TaskDetail";
 
 
 function AppRoutes() {
@@ -123,6 +124,10 @@ function AppRoutes() {
                         path="/projects/:id/members"
                         element={<ProjectMembers />}
                     />
+                    <Route
+    path="/tasks/:id"
+    element={<TaskDetail />}
+/>
 
 
                 </Route>
