@@ -1,6 +1,6 @@
-# Project Management System
+# PM System
 
-A full-stack **Project Management System** built with **Laravel REST
+A full-stack **PM System** built with **Laravel REST
 API** and **React.js**.\
 The application provides an admin dashboard for managing users, roles,
 permissions, projects, and project members.
@@ -47,7 +47,7 @@ permissions, projects, and project members.
 -   Remove role
 -   Role and permission based authorization
 
-### Project Management
+### PM
 
 -   Project listing
 -   Create project

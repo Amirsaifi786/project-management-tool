@@ -78,7 +78,7 @@ function Login() {
                     <div className="text-center mb-4">
 
                         <h2>
-                            Project Management
+                            PM
                         </h2>
 
                         <p className="text-muted">

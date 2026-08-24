@@ -5,7 +5,9 @@ import api from "../services/api";
 const TaskDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-
+    const [previewFile, setPreviewFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
+    const [previewLoading, setPreviewLoading] = useState(false);
     const [task, setTask] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedFiles, setSelectedFiles] = useState([]);
@@ -127,7 +129,72 @@ const TaskDetail = () => {
             setDeleting(null);
         }
     };
+    const isImageFile = (attachment) => {
+        return [
+            "jpg",
+            "jpeg",
+            "png",
+            "gif",
+            "webp",
+        ].includes(
+            attachment?.extension?.toLowerCase()
+        );
+    };
 
+    const isPdfFile = (attachment) => {
+        return (
+            attachment?.extension?.toLowerCase() === "pdf"
+        );
+    };
+    const closePreview = () => {
+        if (previewUrl) {
+            window.URL.revokeObjectURL(previewUrl);
+        }
+
+        setPreviewUrl(null);
+        setPreviewFile(null);
+        setPreviewLoading(false);
+    };
+    const handleView = async (attachment) => {
+        try {
+            setError("");
+            setPreviewLoading(true);
+            setPreviewFile(attachment);
+            setPreviewUrl(null);
+
+            const response = await api.get(
+                `/tasks/${id}/attachments/${attachment.id}/download`,
+                {
+                    responseType: "blob",
+                }
+            );
+
+            const contentType =
+                response.headers["content-type"] ||
+                attachment.type ||
+                "application/octet-stream";
+
+            const blob = new Blob([response.data], {
+                type: contentType,
+            });
+
+            const url = window.URL.createObjectURL(blob);
+
+            setPreviewUrl(url);
+        } catch (err) {
+            console.error(err);
+
+            setPreviewFile(null);
+            setPreviewUrl(null);
+
+            setError(
+                err.response?.data?.message ||
+                "Unable to preview file."
+            );
+        } finally {
+            setPreviewLoading(false);
+        }
+    };
     const handleDownload = async (attachment) => {
         try {
             setError("");
@@ -675,11 +742,13 @@ const TaskDetail = () => {
 
                                                             <div>
 
-                                                                <div className="fw-semibold">
-                                                                    {
-                                                                        attachment.name
-                                                                    }
-                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn btn-link p-0 text-decoration-none fw-semibold"
+                                                                    onClick={() => handleView(attachment)}
+                                                                >
+                                                                    {attachment.name}
+                                                                </button>
 
                                                                 <small className="text-muted">
 
@@ -699,7 +768,13 @@ const TaskDetail = () => {
 
 
                                                         <div className="d-flex gap-2">
-
+                                                            <button
+                                                                type="button"
+                                                                className="btn btn-sm btn-outline-success"
+                                                                onClick={() => handleView(attachment)}
+                                                            >
+                                                                👁 View
+                                                            </button>
                                                             <button
                                                                 type="button"
                                                                 className="btn btn-sm btn-outline-primary"
@@ -726,7 +801,7 @@ const TaskDetail = () => {
                                                                 }
                                                             >
                                                                 {deleting ===
-                                                                attachment.id
+                                                                    attachment.id
                                                                     ? "Deleting..."
                                                                     : "Delete"}
                                                             </button>
@@ -833,8 +908,8 @@ const TaskDetail = () => {
                                 <strong>
                                     {task.due_date
                                         ? new Date(
-                                              task.due_date
-                                          ).toLocaleDateString()
+                                            task.due_date
+                                        ).toLocaleDateString()
                                         : "No due date"}
                                 </strong>
 
@@ -850,8 +925,8 @@ const TaskDetail = () => {
                                 <strong>
                                     {task.created_at
                                         ? new Date(
-                                              task.created_at
-                                          ).toLocaleDateString()
+                                            task.created_at
+                                        ).toLocaleDateString()
                                         : "N/A"}
                                 </strong>
 
@@ -891,9 +966,192 @@ const TaskDetail = () => {
                 </div>
 
             </div>
+            {previewFile && (
+    <div
+        className="modal fade show"
+        style={{
+            display: "block",
+            backgroundColor: "rgba(0,0,0,0.75)",
+            zIndex: 9999,
+        }}
+        role="dialog"
+        aria-modal="true"
+        onClick={(e) => {
+            if (e.target === e.currentTarget) {
+                closePreview();
+            }
+        }}
+    >
+        <div
+            className="modal-dialog modal-xl modal-dialog-centered"
+            style={{
+                maxWidth: "90%",
+            }}
+        >
+            <div className="modal-content">
+
+                <div className="modal-header">
+
+                    <div>
+                        <h5 className="modal-title mb-1">
+                            {previewFile.name}
+                        </h5>
+
+                        <small className="text-muted">
+                            {previewFile.extension?.toUpperCase()}
+                            {" • "}
+                            {formatFileSize(
+                                previewFile.size
+                            )}
+                        </small>
+                    </div>
+
+                    <button
+                        type="button"
+                        className="btn-close"
+                        onClick={closePreview}
+                    ></button>
+
+                </div>
+
+                <div
+                    className="modal-body text-center"
+                    style={{
+                        minHeight: "500px",
+                        maxHeight: "75vh",
+                        overflow: "auto",
+                    }}
+                >
+
+                    {previewLoading && (
+                        <div className="py-5">
+
+                            <div
+                                className="spinner-border text-primary"
+                                role="status"
+                            >
+                                <span className="visually-hidden">
+                                    Loading...
+                                </span>
+                            </div>
+
+                            <div className="mt-3">
+                                Loading preview...
+                            </div>
+
+                        </div>
+                    )}
+
+                    {!previewLoading &&
+                        previewUrl &&
+                        isImageFile(previewFile) && (
+                            <img
+                                src={previewUrl}
+                                alt={previewFile.name}
+                                style={{
+                                    maxWidth: "100%",
+                                    maxHeight: "65vh",
+                                    objectFit: "contain",
+                                }}
+                            />
+                        )}
+
+                    {!previewLoading &&
+                        previewUrl &&
+                        isPdfFile(previewFile) && (
+                            <iframe
+                                src={previewUrl}
+                                title={previewFile.name}
+                                style={{
+                                    width: "100%",
+                                    height: "65vh",
+                                    border: "none",
+                                }}
+                            />
+                        )}
+
+                    {!previewLoading &&
+                        previewUrl &&
+                        !isImageFile(previewFile) &&
+                        !isPdfFile(previewFile) && (
+                            <div className="py-5">
+
+                                <div
+                                    style={{
+                                        fontSize: "70px",
+                                    }}
+                                >
+                                    {getFileIcon(
+                                        previewFile.extension
+                                    )}
+                                </div>
+
+                                <h5 className="mt-3">
+                                    Preview not available
+                                </h5>
+
+                                <p className="text-muted">
+                                    This file type cannot be
+                                    previewed in the browser.
+                                </p>
+
+                                <button
+                                    type="button"
+                                    className="btn btn-primary"
+                                    onClick={() =>
+                                        handleDownload(
+                                            previewFile
+                                        )
+                                    }
+                                >
+                                    ⬇ Download File
+                                </button>
+
+                            </div>
+                        )}
+
+                </div>
+
+                <div className="modal-footer">
+
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() =>
+                            handleDownload(
+                                previewFile
+                            )
+                        }
+                    >
+                        ⬇ Download
+                    </button>
+
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={closePreview}
+                    >
+                        Close
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+)}
+
+
+
+
+
+
 
         </div>
+        
+
     );
+
 };
 
 export default TaskDetail;

@@ -41,7 +41,7 @@ class TaskAttachmentController extends Controller
                 'type' => $file->getClientMimeType(),
                 'extension' => strtolower($file->getClientOriginalExtension()),
                 'size' => $file->getSize(),
-                'uploaded_by' => auth()->id(),
+                'uploaded_by' => auth()->d(),
                 'uploaded_at' => now()->toDateTimeString(),
             ];
         }
@@ -64,31 +64,38 @@ class TaskAttachmentController extends Controller
         ]);
     }
 
-    public function download(Task $task, string $attachment)
-    {
-        $attachments = $task->attachments ?? [];
+public function download(Task $task, string $attachment)
+{
+    $attachments = $task->attachments ?? [];
 
-        $file = collect($attachments)->firstWhere('id', $attachment);
+    $file = collect($attachments)->firstWhere('id', $attachment);
 
-        if (!$file) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Attachment not found.'
-            ], 404);
-        }
-
-        if (!Storage::disk('public')->exists($file['path'])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'File does not exist.'
-            ], 404);
-        }
-
-        return Storage::disk('public')->download(
-            $file['path'],
-            $file['name']
-        );
+    if (!$file) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Attachment not found.'
+        ], 404);
     }
+
+    if (
+        !isset($file['path']) ||
+        !Storage::disk('public')->exists($file['path'])
+    ) {
+        return response()->json([
+            'success' => false,
+            'message' => 'File does not exist.'
+        ], 404);
+    }
+
+    $path = Storage::disk('public')->path($file['path']);
+
+    $mimeType = $file['type'] ?? mime_content_type($path);
+
+    return response()->file($path, [
+        'Content-Type' => $mimeType,
+        'Content-Disposition' => 'inline; filename="' . $file['name'] . '"',
+    ]);
+}
 
     public function destroy(Task $task, string $attachment)
     {
