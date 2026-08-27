@@ -44,5 +44,9 @@ public function assignedTasks()
         'assigned_to'
     );
 }
+public function taskComments()
+{
+    return $this->hasMany(TaskComment::class);
+}
 
 }

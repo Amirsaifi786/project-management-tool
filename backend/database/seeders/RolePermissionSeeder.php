@@ -92,7 +92,7 @@ class RolePermissionSeeder extends Seeder
         ]);
 
         $projectManager = Role::firstOrCreate([
-            'name' => 'Project Manager',
+            'name' => 'PM',
             'guard_name' => 'web',
         ]);
 

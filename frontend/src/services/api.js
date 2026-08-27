@@ -20,5 +20,31 @@ api.interceptors.request.use(
     },
     (error) => Promise.reject(error)
 );
+export const getTaskComments = async (taskId) => {
+    const response = await api.get(`/tasks/${taskId}/comments`);
+    return response.data;
+};
+
+export const addTaskComment = async (taskId, comment) => {
+    const response = await api.post(`/tasks/${taskId}/comments`, {
+        comment,
+    });
+
+    return response.data;
+};
+
+export const updateTaskComment = async (commentId, comment) => {
+    const response = await api.put(`/task-comments/${commentId}`, {
+        comment,
+    });
+
+    return response.data;
+};
+
+export const deleteTaskComment = async (commentId) => {
+    const response = await api.delete(`/task-comments/${commentId}`);
+    return response.data;
+};
+
 
 export default api;

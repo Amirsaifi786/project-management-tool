@@ -66,25 +66,20 @@ function Login() {
     };
 
     return (
-        <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
-
-            <div
-                className="card shadow"
-                style={{ width: "400px" }}
-            >
-
-                <div className="card-body p-4">
-
-                    <div className="text-center mb-4">
-
-                        <h2>
-                            PM
-                        </h2>
-
-                        <p className="text-muted">
-                            Admin Panel Login
-                        </p>
-
+        <div className="login-page">
+            <section className="login-visual">
+                <div className="brand"><span className="brand-mark">P</span>Projectly</div>
+                <div className="login-copy">
+                    <h1>Make every project move forward.</h1>
+                    <p>Plan work, bring your team together, and stay on top of every important detail in one calm workspace.</p>
+                </div>
+            </section>
+            <section className="login-panel">
+                <div className="login-card">
+                    <div className="login-logo"><span className="brand-mark me-2 d-inline-grid">P</span>Projectly</div>
+                    <div className="mb-4">
+                        <h2 className="mb-2">Welcome back</h2>
+                        <p className="text-muted mb-0">Sign in to continue to your workspace.</p>
                     </div>
 
                     {error && (
@@ -147,8 +142,7 @@ function Login() {
                     </form>
 
                 </div>
-
-            </div>
+            </section>
 
         </div>
     );

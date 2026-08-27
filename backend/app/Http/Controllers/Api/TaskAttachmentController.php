@@ -12,6 +12,9 @@ class TaskAttachmentController extends Controller
 {
     public function store(Request $request, Task $task)
     {
+ dd([$request->all(),$task->toArray()]);
+ 
+
         $request->validate([
             'files' => ['required', 'array', 'min:1'],
             'files.*' => [
@@ -23,6 +26,7 @@ class TaskAttachmentController extends Controller
         ]);
 
         $attachments = $task->attachments ?? [];
+        $uploadedFiles = [];
 
         foreach ($request->file('files') as $file) {
             $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
@@ -33,7 +37,7 @@ class TaskAttachmentController extends Controller
                 'public'
             );
 
-            $attachments[] = [
+            $attachment = [
                 'id' => (string) Str::uuid(),
                 'name' => $file->getClientOriginalName(),
                 'filename' => $filename,
@@ -41,13 +45,25 @@ class TaskAttachmentController extends Controller
                 'type' => $file->getClientMimeType(),
                 'extension' => strtolower($file->getClientOriginalExtension()),
                 'size' => $file->getSize(),
-                'uploaded_by' => auth()->d(),
+                'uploaded_by' => auth()->id(),
                 'uploaded_at' => now()->toDateTimeString(),
             ];
+
+            $attachments[] = $attachment;
+            $uploadedFiles[] = $attachment;
         }
 
         $task->attachments = $attachments;
         $task->save();
+
+        foreach ($uploadedFiles as $file) {
+            $task->activities()->create([
+                'user_id' => auth()->id(),
+                'action' => 'attachment_uploaded',
+                'description' => 'uploaded an attachment',
+                'new_value' => $file['name'],
+            ]);
+        }
 
         return response()->json([
             'success' => true,
@@ -64,51 +80,53 @@ class TaskAttachmentController extends Controller
         ]);
     }
 
-public function download(Task $task, string $attachment)
-{
-    $attachments = $task->attachments ?? [];
+    public function download(Task $task, string $attachment)
+    {
+        $attachments = $task->attachments ?? [];
 
-    $file = collect($attachments)->firstWhere('id', $attachment);
+        $file = collect($attachments)->firstWhere('id', $attachment);
 
-    if (!$file) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Attachment not found.'
-        ], 404);
+        if (!$file) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Attachment not found.',
+            ], 404);
+        }
+
+        if (
+            !isset($file['path']) ||
+            !Storage::disk('public')->exists($file['path'])
+        ) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File does not exist.',
+            ], 404);
+        }
+
+        $path = Storage::disk('public')->path($file['path']);
+
+        $mimeType = $file['type'] ?? mime_content_type($path);
+
+        return response()->file($path, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $file['name'] . '"',
+        ]);
     }
-
-    if (
-        !isset($file['path']) ||
-        !Storage::disk('public')->exists($file['path'])
-    ) {
-        return response()->json([
-            'success' => false,
-            'message' => 'File does not exist.'
-        ], 404);
-    }
-
-    $path = Storage::disk('public')->path($file['path']);
-
-    $mimeType = $file['type'] ?? mime_content_type($path);
-
-    return response()->file($path, [
-        'Content-Type' => $mimeType,
-        'Content-Disposition' => 'inline; filename="' . $file['name'] . '"',
-    ]);
-}
 
     public function destroy(Task $task, string $attachment)
     {
         $attachments = $task->attachments ?? [];
 
         $index = collect($attachments)->search(
-            fn ($item) => isset($item['id']) && $item['id'] === $attachment
+            fn($item) =>
+            isset($item['id']) &&
+                $item['id'] === $attachment
         );
 
         if ($index === false) {
             return response()->json([
                 'success' => false,
-                'message' => 'Attachment not found.'
+                'message' => 'Attachment not found.',
             ], 404);
         }
 
@@ -120,6 +138,13 @@ public function download(Task $task, string $attachment)
         ) {
             Storage::disk('public')->delete($file['path']);
         }
+
+        $task->activities()->create([
+            'user_id' => auth()->id(),
+            'action' => 'attachment_deleted',
+            'description' => 'deleted an attachment',
+            'old_value' => $file['name'] ?? null,
+        ]);
 
         unset($attachments[$index]);
 

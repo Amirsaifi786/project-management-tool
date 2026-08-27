@@ -309,8 +309,8 @@ const handleSubmit = async (e) => {
                                         Admin
                                     </option>
 
-                                    <option value="Project Manager">
-                                        Project Manager
+                                    <option value="PM">
+                                        PM
                                     </option>
 
                                     <option value="Developer">

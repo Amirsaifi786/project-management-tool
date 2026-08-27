@@ -1,121 +1,146 @@
+import { useState } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { logout } from "../api/authApi";
 
 function AdminLayout() {
+  const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user") || "null");
 
-    const user = JSON.parse(
-        localStorage.getItem("user") || "null"
-    );
+  const initial =
+    user?.name?.trim()?.charAt(0)?.toUpperCase() || "U";
 
-    const handleLogout = async () => {
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error(error);
+    }
 
-        try {
-            await logout();
-        } catch (error) {
-            console.error(error);
-        }
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
 
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+    navigate("/login");
+  };
 
-        navigate("/login");
-    };
+  const closeSidebar = () => {
+    setSidebarOpen(false);
+  };
 
-    return (
-        <div className="d-flex min-vh-100">
+  const nav = [
+    ["/dashboard", "bi-grid-1x2", "Dashboard"],
+    ["/projects", "bi-folder2-open", "Projects"],
+    ["/tasks", "bi-check2-square", "Tasks"],
+    ["/users", "bi-people", "Team members"],
+  ];
 
-            {/* Sidebar */}
+  return (
+    <div className="app-shell">
+      {sidebarOpen && (
+        <div
+          className="mobile-sidebar-overlay"
+          onClick={closeSidebar}
+        ></div>
+      )}
 
-            <aside
-                className="bg-dark text-white p-3"
-                style={{ width: "250px" }}
-            >
+      <aside
+        className={`app-sidebar ${
+          sidebarOpen ? "mobile-sidebar-open" : ""
+        }`}
+      >
+        <div className="brand">
+          <span className="brand-mark">P</span>
+          <span className="brand-text">Projectly</span>
 
-                <h4 className="mb-4">
-                    Project Manager
-                </h4>
-
-                <nav className="nav flex-column gap-2">
-
-                    <NavLink
-                        to="/dashboard"
-                        className="nav-link text-white"
-                    >
-                        <i className="bi bi-speedometer2 me-2"></i>
-                        Dashboard
-                    </NavLink>
-
-                    <NavLink
-                        to="/users"
-                        className="nav-link text-white"
-                    >
-                        <i className="bi bi-people me-2"></i>
-                        Users
-                    </NavLink>
-
-                    <NavLink
-                        to="/projects"
-                        className="nav-link text-white"
-                    >
-                        <i className="bi bi-kanban me-2"></i>
-                        Projects
-                    </NavLink>
-
-                    <NavLink
-                        to="/tasks"
-                        className="nav-link text-white"
-                    >
-                        <i className="bi bi-check2-square me-2"></i>
-                        Tasks
-                    </NavLink>
-
-                </nav>
-
-            </aside>
-
-            {/* Main */}
-
-            <div className="flex-grow-1 bg-light">
-
-                <header className="bg-white border-bottom p-3">
-
-                    <div className="d-flex justify-content-between">
-
-                        <h5 className="mb-0">
-                            Admin Panel
-                        </h5>
-
-                        <div>
-
-                            <span className="me-3">
-                                {user?.name}
-                            </span>
-
-                            <button
-                                className="btn btn-outline-danger btn-sm"
-                                onClick={handleLogout}
-                            >
-                                Logout
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                </header>
-
-                <main className="p-4">
-
-                    <Outlet />
-
-                </main>
-
-            </div>
-
+          <button
+            type="button"
+            className="mobile-sidebar-close"
+            onClick={closeSidebar}
+            aria-label="Close menu"
+          >
+            <i className="bi bi-x-lg"></i>
+          </button>
         </div>
-    );
+
+        <div className="sidebar-label">
+          Workspace
+        </div>
+
+        <nav className="nav flex-column">
+          {nav.map(([to, icon, label]) => (
+            <NavLink
+              key={to}
+              to={to}
+              onClick={closeSidebar}
+              className="nav-link"
+            >
+              <i className={`bi ${icon} me-2`}></i>
+              <span className="nav-text">
+                {label}
+              </span>
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="sidebar-user">
+          <span className="user-avatar">
+            {initial}
+          </span>
+
+          <div>
+            <strong>
+              {user?.name || "Workspace user"}
+            </strong>
+
+            <small>Signed in</small>
+          </div>
+        </div>
+      </aside>
+
+      <section className="app-content">
+        <header className="app-topbar">
+          <div className="topbar-left">
+            <button
+              type="button"
+              className="mobile-menu-button"
+              onClick={() =>
+                setSidebarOpen(true)
+              }
+              aria-label="Open menu"
+            >
+              <i className="bi bi-list"></i>
+            </button>
+
+            <div className="app-topbar-title">
+              My workspace
+            </div>
+          </div>
+
+          <div className="topbar-actions">
+            <button
+              className="topbar-icon"
+              aria-label="Notifications"
+            >
+              <i className="bi bi-bell"></i>
+            </button>
+
+            <button
+              className="logout-button"
+              onClick={handleLogout}
+            >
+              <i className="bi bi-box-arrow-right me-2"></i>
+              <span>Sign out</span>
+            </button>
+          </div>
+        </header>
+
+        <main className="page-content">
+          <Outlet />
+        </main>
+      </section>
+    </div>
+  );
 }
 
 export default AdminLayout;
